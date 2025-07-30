@@ -10,13 +10,32 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
-        $projects = Project::query();
-
+        $projectsQuery = Project::query();
         if ($request->has('category')) {
-            $projects->where('category', $request->category);
+            $projectsQuery->where('category', $request->category);
         }
+        $projects = $projectsQuery->latest()->get();
+        $projects->each(function ($project) {
+            $project->proposals_count = $project->proposals()->count();
+        });
 
-        return response()->json($projects->latest()->get());
+        return response()->json($projects);
+    }
+
+
+    public function getProjectsbyClient()
+    {
+        $projectsQuery = Project::query();
+
+        $user = Auth::user();
+        $projectsQuery->where('client_id', $user->id);
+
+        $projects = $projectsQuery->latest()->get();
+        $projects->each(function ($project) {
+            $project->proposals_count = $project->proposals()->count();
+        });
+
+        return response()->json($projects);
     }
 
     public function store(Request $request)
@@ -33,6 +52,7 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
+        $project->loadCount('proposals');
         return $project;
     }
 

@@ -7,21 +7,26 @@ use Illuminate\Support\Facades\Auth;
 
 class ProposalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
         if ($user->type === 'freelancer') {
             $proposals = Proposal::where('freelancer_id', $user->id)->latest()->get();
         } else {
-            // contratante vê propostas dos seus projetos
-            $proposals = Proposal::whereHas('project', function($query) use ($user) {
+            $proposals = Proposal::whereHas('project', function ($query) use ($user) {
                 $query->where('client_id', $user->id);
-            })->latest()->get();
+            })
+                ->when($request->filled('project_id'), function ($query) use ($request) {
+                    $query->where('project_id', $request->project_id);
+                })
+                ->latest()
+                ->get();
         }
 
         return response()->json($proposals);
     }
+
 
     public function store(Request $request)
     {
