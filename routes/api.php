@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
@@ -17,6 +18,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/projects/byClient', [ProjectController::class, 'getProjectsbyClient']);
+    Route::get('/proposals/allProposal', [ProposalController::class, 'allProposal']);
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('proposals', ProposalController::class);
     Route::apiResource('messages', MessageController::class);
@@ -24,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('notifications', NotificationController::class);
     Route::apiResource('payments', PaymentController::class);
     Route::apiResource('wallets', WalletController::class);
-
+    Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/projects/{project}/proposals', [ProposalController::class, 'store']);
     Route::post('/payments/{id}/release', [PaymentController::class, 'release']);
 });

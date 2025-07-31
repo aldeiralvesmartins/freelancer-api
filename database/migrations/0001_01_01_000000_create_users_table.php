@@ -20,6 +20,8 @@ return new class extends Migration
             $table->text('bio')->nullable();
             $table->json('portfolio')->nullable(); // array de links
             $table->string('photo')->nullable();
+            $table->timestamp('email_verified_at')->nullable()->after('email');
+            $table->rememberToken()->after('password');
             $table->timestamps();
         });
 

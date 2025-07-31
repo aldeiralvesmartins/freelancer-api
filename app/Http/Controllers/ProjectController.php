@@ -10,11 +10,17 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
-        $projectsQuery = Project::query();
+        $projectsQuery = Project::with('categories');
+
         if ($request->has('category')) {
-            $projectsQuery->where('category', $request->category);
+            // Filtrar projetos que tenham uma categoria específica (many-to-many)
+            $projectsQuery->whereHas('categories', function ($query) use ($request) {
+                $query->where('categories.id', $request->category);
+            });
         }
+
         $projects = $projectsQuery->latest()->get();
+
         $projects->each(function ($project) {
             $project->proposals_count = $project->proposals()->count();
         });
@@ -23,14 +29,16 @@ class ProjectController extends Controller
     }
 
 
+
     public function getProjectsbyClient()
     {
-        $projectsQuery = Project::query();
-
         $user = Auth::user();
-        $projectsQuery->where('client_id', $user->id);
+
+        $projectsQuery = Project::with('categories')
+        ->where('client_id', $user->id);
 
         $projects = $projectsQuery->latest()->get();
+
         $projects->each(function ($project) {
             $project->proposals_count = $project->proposals()->count();
         });
@@ -41,26 +49,52 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required', 'description' => 'required', 'budget' => 'required|numeric',
-            'deadline' => 'required|date', 'category' => 'required'
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'budget' => 'required|numeric',
+            'deadline' => 'required|date',
+            'categories' => 'required|array',
+            'categories.*' => 'integer|exists:categories,id',
         ]);
 
         $validated['client_id'] = Auth::id();
 
-        return Project::create($validated);
+        // Cria o projeto
+        $project = Project::create($validated);
+
+        // Associa as categorias
+        $project->categories()->sync($validated['categories']);
+
+        return response()->json($project->load('categories'), 201);
     }
 
     public function show(Project $project)
     {
-        $project->loadCount('proposals');
+        $project->load('categories')->loadCount('proposals');
         return $project;
     }
 
     public function update(Request $request, Project $project)
     {
         $this->authorize('update', $project);
-        $project->update($request->all());
-        return $project;
+
+        $validated = $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string',
+            'budget' => 'sometimes|required|numeric',
+            'deadline' => 'sometimes|required|date',
+            'categories' => 'sometimes|array',
+            'categories.*' => 'integer|exists:categories,id',
+        ]);
+
+        $project->update($validated);
+
+        // Atualiza as categorias se forem enviadas
+        if ($request->has('categories')) {
+            $project->categories()->sync($validated['categories']);
+        }
+
+        return response()->json($project->load('categories'));
     }
 
     public function destroy(Project $project)

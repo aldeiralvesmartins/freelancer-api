@@ -27,6 +27,10 @@ class ProposalController extends Controller
         return response()->json($proposals);
     }
 
+    public function allProposal()
+    {
+        return response()->json(Proposal::latest()->get());
+    }
 
     public function store(Request $request)
     {
