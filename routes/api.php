@@ -9,10 +9,32 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\WalletController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    $user = \App\Models\User::findOrFail($id);
+
+    if (! URL::hasValidSignature($request)) {
+        return response()->json(['message' => 'Link inválido ou expirado.'], 403);
+    }
+
+    if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        return response()->json(['message' => 'Hash inválido.'], 403);
+    }
+
+    if ($user->hasVerifiedEmail()) {
+        return redirect(config('app.frontend_url'));
+    }
+
+    $user->markEmailAsVerified();
+    $user->save();
+
+    return redirect(config('app.frontend_url'));
+})->name('verification.verify')->middleware('signed');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);

@@ -3,12 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\VerifyEmailCustom;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens,HasFactory, Notifiable;
@@ -34,6 +36,8 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = ['rating'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -45,6 +49,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new VerifyEmailCustom);
     }
 
     public function projects() {
@@ -73,5 +82,10 @@ class User extends Authenticatable
 
     public function ratingsReceived() {
         return $this->hasMany(Rating::class, 'to_user_id');
+    }
+
+    public function getRatingAttribute()
+    {
+        return round($this->ratingsReceived()->avg('rating'), 1) ?? 0;
     }
 }

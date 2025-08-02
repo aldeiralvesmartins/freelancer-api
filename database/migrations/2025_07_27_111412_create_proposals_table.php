@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('project_id')->constrained()->onDelete('cascade');
             $table->foreignId('freelancer_id')->constrained('users')->onDelete('cascade');
+            $table->unique(['project_id', 'freelancer_id']);
             $table->decimal('amount', 10, 2);
             $table->integer('duration'); // dias estimados
             $table->text('message')->nullable();

@@ -10,41 +10,56 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
-        $projectsQuery = Project::with('categories');
+        $projectsQuery = Project::with(['categories', 'client']); // carrega relacionamento do cliente
 
         if ($request->has('category')) {
-            // Filtrar projetos que tenham uma categoria específica (many-to-many)
             $projectsQuery->whereHas('categories', function ($query) use ($request) {
                 $query->where('categories.id', $request->category);
             });
         }
 
-        $projects = $projectsQuery->latest()->get();
+        $projects = $projectsQuery->latest()->paginate(10);
 
-        $projects->each(function ($project) {
+        $projects->getCollection()->transform(function ($project) {
             $project->proposals_count = $project->proposals()->count();
+
+            $client = $project->client;
+
+            $project->client = [
+                'id' => $client->id,
+                'name' => $client->name,
+                'avatar' => $client->photo, // ou avatar
+                'rating' => $client->rating ?? null,
+            ];
+
+            return $project;
         });
 
         return response()->json($projects);
     }
-
-
 
     public function getProjectsbyClient()
     {
         $user = Auth::user();
 
-        $projectsQuery = Project::with('categories')
-        ->where('client_id', $user->id);
+        $projects = Project::with(['categories', 'client'])
+            ->where('client_id', $user->id)
+            ->latest()
+            ->get();
 
-        $projects = $projectsQuery->latest()->get();
-
-        $projects->each(function ($project) {
+        $projects->each(function ($project) use ($user) {
             $project->proposals_count = $project->proposals()->count();
+            $project->client = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar' => $user->photo,
+                'rating' => $user->rating ?? null,
+            ];
         });
 
         return response()->json($projects);
     }
+
 
     public function store(Request $request)
     {
@@ -70,7 +85,7 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        $project->load('categories')->loadCount('proposals');
+        $project->load('categories', 'client')->loadCount('proposals');
         return $project;
     }
 

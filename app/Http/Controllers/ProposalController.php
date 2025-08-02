@@ -12,9 +12,18 @@ class ProposalController extends Controller
         $user = Auth::user();
 
         if ($user->type === 'freelancer') {
-            $proposals = Proposal::where('freelancer_id', $user->id)->latest()->get();
+            $proposals = Proposal::with('freelancer')
+                ->when($request->filled('project_id'), function ($query) use ($request) {
+                    $query->where('project_id', $request->project_id);
+                }, function ($query) use ($user) {
+                    $query->where('freelancer_id', $user->id);
+                })
+                ->latest()
+                ->get();
+
         } else {
-            $proposals = Proposal::whereHas('project', function ($query) use ($user) {
+            $proposals = Proposal::with('freelancer') // <--- aqui também
+            ->whereHas('project', function ($query) use ($user) {
                 $query->where('client_id', $user->id);
             })
                 ->when($request->filled('project_id'), function ($query) use ($request) {
@@ -27,10 +36,14 @@ class ProposalController extends Controller
         return response()->json($proposals);
     }
 
+
     public function allProposal()
     {
-        return response()->json(Proposal::latest()->get());
+        return response()->json(
+            Proposal::with('freelancer')->latest()->get()
+        );
     }
+
 
     public function store(Request $request)
     {
