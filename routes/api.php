@@ -8,6 +8,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,7 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) 
 })->name('verification.verify')->middleware('signed');
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/users/{id}', [UserController::class, 'show']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/projects/byClient', [ProjectController::class, 'getProjectsbyClient']);
@@ -51,4 +53,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/projects/{project}/proposals', [ProposalController::class, 'store']);
     Route::post('/payments/{id}/release', [PaymentController::class, 'release']);
+    Route::post('/proposals/{proposal}/accept', [ProposalController::class, 'accept']);
+    Route::post('/proposals/{proposal}/reject', [ProposalController::class, 'reject']);
 });

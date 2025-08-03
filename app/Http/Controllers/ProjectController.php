@@ -17,6 +17,9 @@ class ProjectController extends Controller
                 $query->where('categories.id', $request->category);
             });
         }
+        if ($request->has('status')) {
+            $projectsQuery->where('status', $request->status);
+        }
 
         $projects = $projectsQuery->latest()->paginate(10);
 
@@ -42,7 +45,7 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
 
-        $projects = Project::with(['categories', 'client'])
+        $projects = Project::with(['categories', 'client', 'proposals'])
             ->where('client_id', $user->id)
             ->latest()
             ->get();
@@ -85,7 +88,7 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        $project->load('categories', 'client')->loadCount('proposals');
+        $project->load('categories', 'client', 'proposals.freelancer')->loadCount('proposals');
         return $project;
     }
 

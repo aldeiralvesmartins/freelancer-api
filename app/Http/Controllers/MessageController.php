@@ -12,7 +12,7 @@ class MessageController extends Controller
         // Mostrar mensagens do usuário logado (enviadas ou recebidas)
         $userId = Auth::id();
 
-        $messages = Message::where('sender_id', $userId)
+        $messages = Message::with(['sender', 'receiver'])->where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
             ->latest()
             ->get();

@@ -96,4 +96,55 @@ class ProposalController extends Controller
         $proposal->delete();
         return response()->noContent();
     }
+
+    public function accept(Proposal $proposal)
+    {
+        $user = Auth::user();
+
+        // 1. Verifica se o usuário é o dono do projeto
+        if ($proposal->project->client_id !== $user->id) {
+            return response()->json(['message' => 'Não autorizado.'], 403);
+        }
+
+        // 2. Atualiza o status da proposta selecionada
+        $proposal->status = 'accepted';
+        $proposal->save();
+
+        // 3. Rejeita todas as outras propostas do mesmo projeto
+        Proposal::where('project_id', $proposal->project_id)
+            ->where('id', '!=', $proposal->id)
+            ->update(['status' => 'rejected']);
+
+        // 4. Atualiza o status do projeto para "in_progress"
+        $proposal->project->update(['status' => 'in_progress']);
+
+        return response()->json([
+            'message' => 'Proposta aceita com sucesso.',
+            'proposal' => $proposal->fresh(),
+            'project' => $proposal->project
+        ]);
+    }
+
+    public function reject(Proposal $proposal)
+    {
+        $user = Auth::user();
+
+        // Verifica se o usuário é o dono do projeto
+        if ($proposal->project->client_id !== $user->id) {
+            return response()->json(['message' => 'Não autorizado.'], 403);
+        }
+
+        // Impede que uma proposta aceita seja rejeitada
+        if ($proposal->status === 'accepted') {
+            return response()->json(['message' => 'Não é possível rejeitar uma proposta já aceita.'], 400);
+        }
+
+        // Atualiza a proposta para 'rejected'
+        $proposal->update(['status' => 'rejected']);
+
+        return response()->json([
+            'message' => 'Proposta rejeitada com sucesso.',
+            'proposal' => $proposal->fresh()
+        ]);
+    }
 }
