@@ -12,17 +12,17 @@ class ProposalController extends Controller
         $user = Auth::user();
 
         if ($user->type === 'freelancer') {
-            $proposals = Proposal::with('freelancer')
-                ->when($request->filled('project_id'), function ($query) use ($request) {
-                    $query->where('project_id', $request->project_id);
-                }, function ($query) use ($user) {
-                    $query->where('freelancer_id', $user->id);
-                })
+            $proposals = Proposal::with(['freelancer', 'project.categories']) // ou 'project.categories'
+            ->when($request->filled('project_id'), function ($query) use ($request) {
+                $query->where('project_id', $request->project_id);
+            }, function ($query) use ($user) {
+                $query->where('freelancer_id', $user->id);
+            })
                 ->latest()
                 ->get();
 
         } else {
-            $proposals = Proposal::with('freelancer') // <--- aqui também
+            $proposals = Proposal::with(['freelancer', 'project.categories']) // ou 'project.categories'
             ->whereHas('project', function ($query) use ($user) {
                 $query->where('client_id', $user->id);
             })
