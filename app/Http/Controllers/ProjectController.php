@@ -45,10 +45,44 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
 
-        $projects = Project::with(['categories', 'client', 'proposals'])
+        $projects = Project::with(['categories', 'client', 'proposals.freelancer'])
             ->where('client_id', $user->id)
             ->latest()
             ->get();
+
+        $projects->each(function ($project) use ($user) {
+            $project->proposals_count = $project->proposals()->count();
+            $project->client = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar' => $user->photo,
+                'rating' => $user->rating ?? null,
+            ];
+        });
+
+        return response()->json($projects);
+    }
+
+    public function getProjectsInProgress()
+    {
+        $user = Auth::user();
+
+        if ($user->type === 'freelancer') {
+            $projects = Project::with(['categories', 'client', 'proposals.freelancer'])
+                ->where('status', 'in_progress') // status do projeto
+                ->whereHas('proposals', function ($query) use ($user) {
+                    $query->where('freelancer_id', $user->id)
+                        ->where('status', 'accepted'); // status da proposta
+                })
+                ->latest()
+                ->get();
+        } else {
+            $projects = Project::with(['categories', 'client', 'proposals.freelancer'])
+                ->where('client_id', $user->id)
+                ->where('status', 'in_progress') // status do projeto
+                ->latest()
+                ->get();
+        }
 
         $projects->each(function ($project) use ($user) {
             $project->proposals_count = $project->proposals()->count();

@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/projects/byClient', [ProjectController::class, 'getProjectsbyClient']);
+    Route::get('/projects/inProgress', [ProjectController::class, 'getProjectsInProgress']);
     Route::get('/proposals/allProposal', [ProposalController::class, 'allProposal']);
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('proposals', ProposalController::class);
