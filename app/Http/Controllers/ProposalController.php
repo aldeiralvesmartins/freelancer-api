@@ -73,7 +73,6 @@ class ProposalController extends Controller
 
     public function show(Proposal $proposal)
     {
-        $this->authorize('view', $proposal);
         return $proposal;
     }
 

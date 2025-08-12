@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -27,7 +28,11 @@ class AuthController extends Controller
             'type' => $request->type,
         ]);
 
-        $user->sendEmailVerificationNotification();
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            Log::error('Falha ao enviar e-mail de verificação: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Usuário registrado com sucesso',
@@ -61,7 +66,7 @@ class AuthController extends Controller
             }
 
             return response()->json([
-                'message' => 'Por favor, verifique seu e-mail antes de continuar. Um novo link foi enviado, se necessário.',
+                'message' => 'verify.in.email',
             ], 403);
         }
 

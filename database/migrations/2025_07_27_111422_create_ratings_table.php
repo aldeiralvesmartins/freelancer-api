@@ -12,14 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ratings', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('from_user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('to_user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('project_id')->constrained()->onDelete('cascade');
+            $table->string('id', 24)->unique();
+
+            $table->string('from_user_id', 24);
+            $table->foreign('from_user_id')->references('id')->on('users')->onDelete('cascade');
+
+            $table->string('to_user_id', 24);
+            $table->foreign('to_user_id')->references('id')->on('users')->onDelete('cascade');
+
+            $table->string('project_id', 24);
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
+
             $table->tinyInteger('rating'); // de 1 a 5
             $table->text('comment')->nullable();
             $table->timestamps();
         });
+
     }
 
     /**

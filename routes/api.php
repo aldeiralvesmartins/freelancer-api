@@ -17,27 +17,27 @@ use Illuminate\Support\Facades\URL;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
 Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
     $user = User::findOrFail($id);
 
     if (! URL::hasValidSignature($request)) {
-        return response()->json(['message' => 'Link inválido ou expirado.'], 403);
+        return redirect(config('app.frontend_url') . '/login?verified=invalid');
     }
 
     if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-        return response()->json(['message' => 'Hash inválido.'], 403);
+        return redirect(config('app.frontend_url') . '/login?verified=invalid');
     }
 
     if ($user->hasVerifiedEmail()) {
-        return redirect(config('app.frontend_url'));
+        return redirect(config('app.frontend_url') . '/login?verified=already');
     }
 
     $user->markEmailAsVerified();
     $user->save();
 
-    return redirect(config('app.frontend_url'));
+    return redirect(config('app.frontend_url') . '/login?verified=success');
 })->name('verification.verify')->middleware('signed');
+
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{id}', [UserController::class, 'show']);

@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Category;
+use Illuminate\Support\Str;
 
 class ProjectSeeder extends Seeder
 {
@@ -26,6 +27,8 @@ class ProjectSeeder extends Seeder
 
             $categories = Category::inRandomOrder()->take(rand(1, 3))->pluck('id');
             $project->categories()->attach($categories);
+
+
         }
     }
 }

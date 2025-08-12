@@ -106,7 +106,7 @@ class ProjectController extends Controller
             'budget' => 'required|numeric',
             'deadline' => 'required|date',
             'categories' => 'required|array',
-            'categories.*' => 'integer|exists:categories,id',
+            'categories.*' => 'string|exists:categories,id',
         ]);
 
         $validated['client_id'] = Auth::id();
@@ -136,7 +136,7 @@ class ProjectController extends Controller
             'budget' => 'sometimes|required|numeric',
             'deadline' => 'sometimes|required|date',
             'categories' => 'sometimes|array',
-            'categories.*' => 'integer|exists:categories,id',
+            'categories.*' => 'string|exists:categories,id',
         ]);
 
         $project->update($validated);

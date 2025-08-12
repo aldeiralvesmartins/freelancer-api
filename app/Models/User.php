@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\VerifyEmailCustom;
+use App\Services\CustomIdService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,7 +15,11 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens,HasFactory, Notifiable;
+    protected $primaryKey = 'id';
 
+    public $incrementing = false; // porque o id é string
+
+    protected $keyType = 'string';
     /**
      * The attributes that are mass assignable.
      *
@@ -37,7 +42,11 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     protected $appends = ['rating'];
-
+    public static function boot()
+    {
+        parent::boot();
+        static::creating(fn($model) => $model->id = CustomIdService::generateCustomId(get_class($model)));
+    }
     /**
      * Get the attributes that should be cast.
      *

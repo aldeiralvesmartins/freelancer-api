@@ -12,13 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('proposal_id')->constrained()->onDelete('cascade');
+            $table->string('id', 24)->unique();
+
+            $table->string('proposal_id', 24);
+            $table->foreign('proposal_id')->references('id')->on('proposals')->onDelete('cascade');
+
             $table->decimal('amount', 10, 2);
             $table->decimal('fee', 10, 2)->default(0);
             $table->enum('status', ['pending', 'held', 'released', 'refunded'])->default('pending'); // tipo escrow
             $table->timestamps();
         });
+
     }
 
     /**

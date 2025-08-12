@@ -12,10 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('proposals', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('project_id')->constrained()->onDelete('cascade');
-            $table->foreignId('freelancer_id')->constrained('users')->onDelete('cascade');
+            $table->string('id', 24)->unique();
+
+            $table->string('project_id', 24);
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
+
+            $table->string('freelancer_id', 24);
+            $table->foreign('freelancer_id')->references('id')->on('users')->onDelete('cascade');
+
             $table->unique(['project_id', 'freelancer_id']);
+
             $table->decimal('amount', 10, 2);
             $table->integer('duration'); // dias estimados
             $table->text('message')->nullable();
@@ -23,6 +29,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
             $table->timestamps();
         });
+
     }
 
     /**
