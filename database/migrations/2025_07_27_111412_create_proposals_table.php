@@ -27,6 +27,9 @@ return new class extends Migration
             $table->text('message')->nullable();
             $table->json('links')->nullable(); // links extras
             $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+
+            $table->decimal('deposit_amount', 10, 2)->default(0)->after('amount');
+            $table->enum('deposit_status', ['pending', 'paid', 'released', 'cancelled'])->default('pending')->after('deposit_amount');
             $table->timestamps();
         });
 

@@ -21,6 +21,7 @@ class Wallet extends Model
         parent::boot();
         static::creating(fn($model) => $model->id = CustomIdService::generateCustomId(get_class($model)));
     }
+
     public function user() {
         return $this->belongsTo(User::class);
     }

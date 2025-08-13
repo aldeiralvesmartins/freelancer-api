@@ -53,9 +53,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('notifications', NotificationController::class);
     Route::apiResource('payments', PaymentController::class);
     Route::apiResource('wallets', WalletController::class);
+    Route::get('/wallet', [WalletController::class, 'me']);
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/projects/{project}/proposals', [ProposalController::class, 'store']);
     Route::post('/payments/{id}/release', [PaymentController::class, 'release']);
     Route::post('/proposals/{proposal}/accept', [ProposalController::class, 'accept']);
     Route::post('/proposals/{proposal}/reject', [ProposalController::class, 'reject']);
+    Route::post('/proposals/deposit', [PaymentController::class, 'depositAndLock']);
 });

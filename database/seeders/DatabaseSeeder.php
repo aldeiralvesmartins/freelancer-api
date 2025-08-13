@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             NotificationSeeder::class,
             RatingSeeder::class,
             WalletSeeder::class,
+            TransactionsTableSeeder::class
         ]);
     }
 }
